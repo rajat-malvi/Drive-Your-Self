@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Default fallback values (replace with your actual production values)
-const DEFAULT_SUPABASE_URL = 'https://qxzbqgmacakxkqstxvju.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4emJxZ21hY2FreGtxc3R4dmp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTY5MjYsImV4cCI6MjA2MTUzMjkyNn0.GupctZZweA_r1MVwfhmQlb1v3FBPpvv71jDiVj1zPPw';
+const DEFAULT_SUPABASE_URL = 'https://ivqpmzoeorlfrgaeklat.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2cXBtem9lb3JsZnJnYWVrbGF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzAxOTUsImV4cCI6MjA5NTkwNjE5NX0.R2L2TR8PFRbGE-e3VDoM6z3hsGWTQqMgkW38bs22g0c';
 
 // Get environment variables from various sources
 // This handles both development (import.meta.env) and production (process.env) environments
