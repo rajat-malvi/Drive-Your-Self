@@ -91,18 +91,6 @@ export const ProblemProvider: React.FC<ProblemProviderProps> = ({ children }) =>
           // Count of unique problems completed today
           const uniqueTodayProblemsCount = todayError ? 0 : new Set(todayProblems?.map(p => p.problem_id) || []).size;
 
-          // Also get the daily activity record for streak info
-          const { data: activityData, error: activityError } = await supabase
-            .from('daily_activity')
-            .select('problems_solved')
-            .eq('user_id', user.id)
-            .eq('activity_date', today)
-            .single();
-
-          if (activityError && activityError.code !== 'PGRST116') {
-            console.error('Error loading daily activity:', activityError);
-          }
-
           // Load user profile for streak info
           const { data: profileData, error: profileError } = await supabase
             .from('user_profiles')
@@ -110,13 +98,12 @@ export const ProblemProvider: React.FC<ProblemProviderProps> = ({ children }) =>
             .eq('user_id', user.id)
             .single();
 
-          if (profileError) {
+          if (profileError && profileError.code !== 'PGRST116') {
             console.error('Error loading user profile:', profileError);
           }
 
           if (!profileError && profileData) {
             setDailyStats({
-              // Use the accurate count of unique problems completed today
               problemsSolved: uniqueTodayProblemsCount,
               streak: profileData.streak_count,
               longestStreak: profileData.longest_streak
@@ -128,27 +115,12 @@ export const ProblemProvider: React.FC<ProblemProviderProps> = ({ children }) =>
       };
 
       loadUserData();
-    } else {
-      // For non-authenticated users, clear the state
-      setCompletedProblems([]);
-      setProblemNotes([]);
-      setDailyStats({
-        problemsSolved: 0,
-        streak: 0,
-        longestStreak: 0
-      });
     }
   }, [user]);
 
   const markProblemCompleted = async (problemId: string) => {
     if (!user || !userProfile) {
-      // For non-authenticated users, just update the local state
-      setCompletedProblems(prev => {
-        if (prev.includes(problemId)) {
-          return prev.filter(id => id !== problemId);
-        }
-        return [...prev, problemId];
-      });
+      console.warn('User not initialized yet');
       return;
     }
 
@@ -229,6 +201,8 @@ export const ProblemProvider: React.FC<ProblemProviderProps> = ({ children }) =>
           .eq('user_id', user.id)
           .eq('problem_id', problemId);
 
+        const today = new Date().toISOString().split('T')[0];
+
         // Get the unique problem IDs completed today after removal
         const { data: todayProblems, error: todayError } = await supabase
           .from('completed_problems')
@@ -295,7 +269,7 @@ export const ProblemProvider: React.FC<ProblemProviderProps> = ({ children }) =>
 
   const saveProblemNote = async (problemId: string, note: string) => {
     if (!user) {
-      throw new Error('User must be authenticated to save notes');
+      throw new Error('User session not initialized');
     }
 
     try {
@@ -348,6 +322,7 @@ export const ProblemProvider: React.FC<ProblemProviderProps> = ({ children }) =>
       console.error('Error in saveProblemNote:', error);
       throw error;
     }
+  };
   };
 
   const getProblemNote = (problemId: string): string | undefined => {
