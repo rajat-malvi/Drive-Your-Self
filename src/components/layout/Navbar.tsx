@@ -1,4 +1,4 @@
-import { ChevronDown, LayoutDashboard, LogOut, Menu, User, X } from 'lucide-react';
+import { LayoutDashboard, Menu, User, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -6,22 +6,12 @@ import { ThemeToggle } from '../ThemeToggle';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isAuthenticated, user, userProfile, logout } = useAuth();
+  const { userProfile } = useAuth();
   const location = useLocation();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-  };
-
-  const toggleProfile = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Close mobile menu if open
-    setIsMenuOpen(false);
-    // Toggle profile dropdown
-    setIsProfileOpen(!isProfileOpen);
   };
 
   // Check if navbar should change style on scroll
@@ -34,39 +24,16 @@ const Navbar: React.FC = () => {
       }
     };
 
-    // Close profile dropdown when clicking outside
-    const handleClickOutside = (e: MouseEvent) => {
-      if (isProfileOpen && e.target instanceof Node) {
-        const dropdown = document.getElementById('profile-dropdown');
-        const button = document.getElementById('profile-button');
-        if (dropdown && button && !dropdown.contains(e.target) && !button.contains(e.target)) {
-          setIsProfileOpen(false);
-        }
-      }
-    };
-
     window.addEventListener('scroll', handleScroll);
-    document.addEventListener('mousedown', handleClickOutside);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isProfileOpen]);
+  }, []);
 
   // Close menus when route changes
   useEffect(() => {
     setIsMenuOpen(false);
-    setIsProfileOpen(false);
   }, [location.pathname]);
-
-  // Close menus when auth state changes
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setIsMenuOpen(false);
-      setIsProfileOpen(false);
-    }
-  }, [isAuthenticated]);
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -122,99 +89,25 @@ const Navbar: React.FC = () => {
             ))}
           </nav>
 
-          {/* Auth Buttons or User Profile */}
+          {/* Action Buttons */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
 
-            {isAuthenticated && (
-              <Link
-                to="/dashboard"
-                className="flex items-center gap-2 px-3 py-2 text-foreground hover:bg-secondary rounded-lg transition-colors duration-200"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <LayoutDashboard size={16} />
-                <span>Dashboard</span>
-              </Link>
-            )}
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2 px-3 py-2 text-foreground hover:bg-secondary rounded-lg transition-colors duration-200"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <LayoutDashboard size={16} />
+              <span>Dashboard</span>
+            </Link>
 
-            {isAuthenticated ? (
-              <div className="relative">
-                <button
-                  id="profile-button"
-                  className="flex items-center gap-2 px-3 py-2 text-foreground hover:bg-secondary rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-                  onClick={toggleProfile}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User size={16} className="text-primary" />
-                    </div>
-                    <span className="font-medium">{userProfile?.username || 'User'}</span>
-                  </div>
-                  <ChevronDown size={16} className={`transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isProfileOpen && (
-                  <div id="profile-dropdown" className="absolute right-0 mt-2 w-48 bg-card rounded-lg shadow-lg py-2 z-50 border border-border">
-                    <div className="py-2">
-                      <div className="px-4 mb-2">
-                        <p className="text-sm font-medium truncate">{userProfile?.username || 'User'}</p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                      </div>
-                      <div className="h-px bg-border" />
-                    </div>
-                    <div className="py-2">
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center gap-3 px-4 py-2 text-foreground hover:bg-secondary transition-colors duration-200"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <LayoutDashboard size={16} />
-                        <span>Dashboard</span>
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-
-                          // Immediately close all menus
-                          setIsProfileOpen(false);
-                          setIsMenuOpen(false);
-
-                          // Execute logout
-                          try {
-                            await logout();
-                          } catch (error: unknown) {
-                            if (error instanceof Error) {
-                              console.error('Error logging out:', error.message);
-                            }
-                          }
-                        }}
-                        className="flex items-center gap-3 px-4 py-2 text-foreground hover:bg-secondary w-full text-left transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-                      >
-                        <LogOut size={16} />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+            <div className="flex items-center gap-2 px-3 py-2 text-foreground bg-secondary rounded-lg">
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <User size={14} className="text-primary" />
               </div>
-            ) : (
-              <>
-                <Link
-                  to={`/login?redirectTo=${location.pathname}`}
-                  className="px-4 py-2 text-foreground hover:bg-secondary rounded-lg transition-colors duration-200"
-                >
-                  Log in
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors duration-200"
-                >
-                  Sign up
-                </Link>
-              </>
-            )}
+              <span className="font-medium text-sm">{userProfile?.username || 'Guest'}</span>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -248,39 +141,20 @@ const Navbar: React.FC = () => {
 
               <div className="h-px bg-border my-2"></div>
 
-              {isAuthenticated ? (
-                <>
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center gap-2 py-2 text-foreground"
-                  >
-                    <User size={18} />
-                    <span>Dashboard</span>
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="flex items-center gap-2 py-2 text-foreground w-full text-left"
-                  >
-                    <LogOut size={18} />
-                    <span>Logout</span>
-                  </button>
-                </>
-              ) : (
-                <div className="flex flex-col gap-2 mt-2">
-                  <Link
-                    to={`/login?redirectTo=${location.pathname}`}
-                    className="w-full py-2 text-center text-foreground border border-border rounded-lg"
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="w-full py-2 text-center bg-primary text-primary-foreground rounded-lg"
-                  >
-                    Sign up
-                  </Link>
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-2 py-2 text-foreground"
+              >
+                <LayoutDashboard size={18} />
+                <span>Dashboard</span>
+              </Link>
+
+              <div className="flex items-center gap-2 py-2 text-foreground">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User size={16} className="text-primary" />
                 </div>
-              )}
+                <span className="font-medium">{userProfile?.username || 'Guest'}</span>
+              </div>
             </nav>
           </div>
         </div>
